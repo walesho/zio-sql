@@ -115,6 +115,8 @@ libraryDependencies += <span class="hljs-string">"dev.zio"</span> %% <span class
 
 <span class="hljs-keyword">val</span> orders = orderColumns.table(<span class="hljs-string">"orders"</span>)
 </code></pre>
+<h2><a class="anchor" aria-hidden="true" id="table-schema-decomposition"></a><a href="#table-schema-decomposition" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Table schema decomposition</h2>
+<p>TODO</p>
 <h2><a class="anchor" aria-hidden="true" id="selects"></a><a href="#selects" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Selects</h2>
 <p>Simple select.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> allProducts = select(productId ++ name ++ price).from(products)
@@ -144,214 +146,9 @@ libraryDependencies += <span class="hljs-string">"dev.zio"</span> %% <span class
     .offset(<span class="hljs-number">10</span>)
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="inserts"></a><a href="#inserts" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Inserts</h2>
-<p>In this chapter we will explore how to write type safe inserts with zio-sql.</p>
-<h3><a class="anchor" aria-hidden="true" id="table-description"></a><a href="#table-description" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Table description</h3>
-<p>As usual, in order to use the DSL, first thing we need to do is to create meta-model of our table. Let’s imagine we have a <em>customers</em> table in postgres (in case of a different database just extend the appropriate module)</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> zio.sql.postgresql.<span class="hljs-type">PostgresModule</span>
-
-<span class="hljs-class"><span class="hljs-keyword">trait</span> <span class="hljs-title">TableModel</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">PostgresModule</span> </span>{
-
-  <span class="hljs-keyword">import</span> <span class="hljs-type">ColumnSet</span>._
-
-  <span class="hljs-keyword">val</span> customers =
-      (uuid(<span class="hljs-string">"id"</span>) ++ localDate(“date_of_birth”) ++ string(<span class="hljs-string">"first_name"</span>) ++ string(<span class="hljs-string">"last_name"</span>) ++ boolean(<span class="hljs-string">"verified_customer"</span>) ++ zonedDateTime(<span class="hljs-string">"created"</span>))
-        .table(<span class="hljs-string">"customers"</span>)
-
-  <span class="hljs-keyword">val</span> customerId :*: dob :*: fName :*: lName :*: verified :*: created :*: _ = customers.columns
-} 
-</code></pre>
-<p>Then, to use zio-sql ’s inserts, just mix in <code>TableModel</code> trait from above, to your repository.</p>
-<p>In case you’re wondering what those extracted columns are (customerId, dob etc), they are of a type called <em>Expr</em>.
-<code>Expr[F, A, B]</code> is fundamental abstraction in zio-sql which basically represents description of any SQL expression of type <code>B</code>, having a source of type <code>A</code> and a phantom type <code>F</code>.
-To give specific example, type of <code>fName</code> is</p>
-<pre><code class="hljs css language-scala"><span class="hljs-type">Expr</span>[<span class="hljs-type">Features</span>.<span class="hljs-type">Source</span>[<span class="hljs-type">String</span>(“first_name”)], customers.<span class="hljs-type">TableType</span>, <span class="hljs-type">String</span>]. 
-</code></pre>
-<p>This gives DSL huge power to remember table from which the column comes from, type of the columns and what kind of Expr we are dealing with. Don’t worry, you don’t need to remember any of this, but from now on we will use those Expr instances in our inserts.</p>
-<p>In general, DSL is giving us two options how to approach inserts. We can insert either tuple values or used defined case class - which requires zio-schema instance (more on that later).
-Also your custom data type or tuple need to consist only of the types for which there is a <code>TypeTag</code> instance defined. Each sql module has a finite set of such types - those are the types that particular module can work with. In other words, types inside your tuples or case class need to correspond with the types of the extracted Exprs.</p>
-<h3><a class="anchor" aria-hidden="true" id="insert-tuples"></a><a href="#insert-tuples" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Insert tuples</h3>
-<p>Let’s say we want to build the query like the following one:</p>
-<pre><code class="hljs css language-sql"><span class="hljs-keyword">insert</span> <span class="hljs-keyword">into</span> 
-  customers(<span class="hljs-keyword">id</span>, date_of_birth, first_name, last_name, verified_customer, created)
-<span class="hljs-keyword">values</span>
-  (<span class="hljs-string">'60b01fc9-c902-4468-8d49-3c0f989def37'</span>, ‘<span class="hljs-number">1983</span><span class="hljs-number">-01</span><span class="hljs-number">-05</span>’, <span class="hljs-string">'Ronald'</span>, <span class="hljs-string">'Russell'</span>, <span class="hljs-literal">true</span>, <span class="hljs-string">'2020-11-21 19:10:25+00'</span>)
-</code></pre>
-<p>zio-sql gives us nice typesafe DSL that feels similar to writing SQL:</p>
-<pre><code class="hljs css language-scala">insertInto(customers)
-    (customerId ++ dob ++ fName ++ lName ++ verified ++ created)
-  .values((<span class="hljs-type">UUID</span>.randomUUID(), <span class="hljs-type">LocalDate</span>.ofYearDay(<span class="hljs-number">1990</span>, <span class="hljs-number">1</span>), <span class="hljs-string">"Ronald"</span>, <span class="hljs-string">"Russell"</span>, <span class="hljs-literal">true</span>, <span class="hljs-type">ZonedDateTime</span>.now()))
-</code></pre>
-<p>Compiler verifies your inserts and your query fails with compile-time error at any of the following situations:</p>
-<ul>
-<li>you mess up the order of values - e.g. you put Boolean where String is expected</li>
-<li>you don’t specify all the not null columns of the table</li>
-<li>you try to insert to columns from another table</li>
-</ul>
-<p>Some  details about syntax: <code>insertInto</code> method takes two value parameters. One is our table <code>customers</code> that we created before in <em>Table description</em> section. The other is an <em>HList like</em> collection of Expr’s, called <code>Selection</code>. You create it by appending Exprs with “++” operator.
-<code>values</code> method takes a Tuple6 of type (UUID, LocalDate, String, String, Boolean, ZonedDateTime). The required tuple is dependent on combination of Exprs. Just like with normal sql insert, you could swap <code>fName</code> with <code>dob</code> Expr and corresponding values and your query will work just fine. Compiler will only let you build such queries that won’t explode in runtime (in case you described your table correctly of course ! )</p>
-<p>If we need to insert multiple values at once, all we need to do is to create any <code>Seq</code> of tuples and stick it into the overloaded <code>values</code> method.</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> data =
-        <span class="hljs-type">List</span>(
-          (<span class="hljs-type">UUID</span>.randomUUID(), <span class="hljs-type">LocalDate</span>.ofYearDay(<span class="hljs-number">1990</span>, <span class="hljs-number">1</span>), <span class="hljs-string">"Ronald1"</span>, <span class="hljs-string">"Russel1"</span>, <span class="hljs-literal">true</span>,  <span class="hljs-type">ZonedDateTime</span>.now()),
-          (<span class="hljs-type">UUID</span>.randomUUID(), <span class="hljs-type">LocalDate</span>.ofYearDay(<span class="hljs-number">1980</span>, <span class="hljs-number">1</span>), <span class="hljs-string">"Ronald2"</span>, <span class="hljs-string">"Russel2"</span>, <span class="hljs-literal">false</span>,  <span class="hljs-type">ZonedDateTime</span>.now()),
-          (<span class="hljs-type">UUID</span>.randomUUID(), <span class="hljs-type">LocalDate</span>.ofYearDay(<span class="hljs-number">1970</span>, <span class="hljs-number">1</span>), <span class="hljs-string">"Ronald3"</span>, <span class="hljs-string">"Russel3"</span>, <span class="hljs-literal">true</span>,  <span class="hljs-type">ZonedDateTime</span>.now())
-        )
-
-<span class="hljs-keyword">val</span> query = insertInto(customers)(
-        customerId ++ dob ++ fName ++ lName ++ verified ++ createdString ++ createdTimestamp
-      ).values(data)
-</code></pre>
-<p>In this case, data is of type <code>List[(UUID, LocalDate, String, String, Boolean, ZonedDateTime)]</code></p>
-<h3><a class="anchor" aria-hidden="true" id="insert-custom-case-class"></a><a href="#insert-custom-case-class" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Insert custom case class</h3>
-<p>ZIO SQL lets you insert also your own case classes.
-Let’s define a <em>customer</em> case class:</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">final</span> <span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Customer</span>(<span class="hljs-params">
-        id: <span class="hljs-type">UUID</span>,
-        dateOfBirth: <span class="hljs-type">LocalDate</span>,
-        firstName: <span class="hljs-type">String</span>,
-        lastName: <span class="hljs-type">String</span>,
-        verified: <span class="hljs-type">Boolean</span>,
-        createdTimestamp: <span class="hljs-type">ZonedDateTime</span>
-      </span>)</span>
-</code></pre>
-<p>In this case, the name of the fields makes no difference. Similarly to writing sql, the order of the fields is important.</p>
-<p>zio-sql also needs an implicit instance of zio-schema for your data type. You can define it easily:</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> zio.schema.<span class="hljs-type">DeriveSchema</span>
-<span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> customerSchema = <span class="hljs-type">DeriveSchema</span>.gen[<span class="hljs-type">Customer</span>]
-</code></pre>
-<p>Then your insert looks almost the same as before:</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> data: <span class="hljs-type">Customer</span> = <span class="hljs-type">Customer</span>(<span class="hljs-type">UUID</span>.randomUUID(), <span class="hljs-type">LocalDate</span>.ofYearDay(<span class="hljs-number">1990</span>, <span class="hljs-number">1</span>), <span class="hljs-string">"Ronald"</span>, <span class="hljs-string">"Russel"</span>, <span class="hljs-literal">true</span>, <span class="hljs-type">ZonedDateTime</span>.now())
-
-<span class="hljs-keyword">val</span> query = insertInto(customers)(
-        customerId ++ dob ++ fName ++ lName ++ verified ++ createdString ++ createdTimestamp
-      ).values(data)
-</code></pre>
-<p>Or you can insert multiple rows at once. Just define data as a <code>List</code> or any collection of your choice.</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> data : <span class="hljs-type">List</span>[<span class="hljs-type">Customer</span>] = ???
-</code></pre>
-<h3><a class="anchor" aria-hidden="true" id="show-generated-sql-query"></a><a href="#show-generated-sql-query" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Show generated SQL query</h3>
-<p>In case you want to see the exact query that zio-sql generated, you can use <code>renderInsert</code> method inside repo that has PostgresModule (or TableModel from above example) mixed in.</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> query = insertInto(customers)(
-        customerId ++ dob ++ fName ++ lName ++ verified ++ createdString ++ createdTimestamp
-      ).values((<span class="hljs-type">UUID</span>.randomUUID(), <span class="hljs-type">LocalDate</span>.ofYearDay(<span class="hljs-number">1990</span>, <span class="hljs-number">1</span>), <span class="hljs-string">"Ronald"</span>, <span class="hljs-string">"Russell"</span>, <span class="hljs-literal">true</span>, <span class="hljs-type">ZonedDateTime</span>.now()))
-
-<span class="hljs-keyword">val</span> sqlString: <span class="hljs-type">String</span> = renderInsert(query)
-</code></pre>
-<h3><a class="anchor" aria-hidden="true" id="execute-the-query"></a><a href="#execute-the-query" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Execute the query</h3>
-<p>In order to execute a query, we use <code>execute</code> method inside repo that has PostgresModule (or TableModel from the above example) mixed in.</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> query = insertInto(customers)(
-        customerId ++ dob ++ fName ++ lName ++ verified ++ createdString ++ createdTimestamp
-      ).values((<span class="hljs-type">UUID</span>.randomUUID(), <span class="hljs-type">LocalDate</span>.ofYearDay(<span class="hljs-number">1990</span>, <span class="hljs-number">1</span>), <span class="hljs-string">"Ronald"</span>, <span class="hljs-string">"Russell"</span>, <span class="hljs-literal">true</span>, <span class="hljs-type">ZonedDateTime</span>.now()))
-
-<span class="hljs-keyword">val</span> executed : <span class="hljs-type">ZIO</span>[<span class="hljs-type">Has</span>[<span class="hljs-type">SqlDriver</span>], <span class="hljs-type">Exception</span>, <span class="hljs-type">Int</span>] = execute(query)
-</code></pre>
-<p>As the type of <code>executed</code> indicates, you need to provide an <code>SqlDriver</code> in order to run this effect. The result <em>Int</em> is the number of rows updated.</p>
-<h3><a class="anchor" aria-hidden="true" id="more-examples"></a><a href="#more-examples" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>More examples</h3>
-<p>More examples can be found in zio-sql test suite (<code>PostgresModuleSpec</code>, <code>SqlServerModuleSpec</code>, …) or in zio-sql-example application in resources.</p>
-<h3><a class="anchor" aria-hidden="true" id="what-is-missing"></a><a href="#what-is-missing" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>What is missing</h3>
-<p>As of now - Q1 2022 - zio-sql contributors is actively working on:</p>
-<ul>
-<li>returning generated IDs from inserts</li>
-<li>introduce nullable columns - for which user won’t need to input values</li>
-<li>introduce auto generated columns - for which user cannot input values</li>
-</ul>
-<h2><a class="anchor" aria-hidden="true" id="subqueries--correlated-subqueries"></a><a href="#subqueries--correlated-subqueries" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Subqueries &amp; Correlated subqueries</h2>
-<p>The goal of ZIO SQL is to give users the ability to describe also queries much more complex than just simple selects or joins. In this section we will introduce a few examples of subqueries and correlated subqueries. In case you will find a query which is not possible to write with zio-sql - or the generated sql query looks differently then expected - please contact us on discord and we will try to add your use case to the next release :) Now let’s explore what is possible today.</p>
-<h3><a class="anchor" aria-hidden="true" id="subquery"></a><a href="#subquery" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Subquery</h3>
-<p>Subquery is a query which is a part of another query. It’s executed first - before outer query - and then its result is used in outer query.</p>
-<p>Now let’s say we want to build following query (this is on MSSQL Server) :</p>
-<pre><code class="hljs css language-sql"><span class="hljs-keyword">select</span> order_id, product_id, unit_price 
-<span class="hljs-keyword">from</span> order_details
-<span class="hljs-keyword">where</span> unit_price &gt; (<span class="hljs-keyword">select</span> <span class="hljs-keyword">AVG</span>(price) <span class="hljs-keyword">from</span> product_prices )
-</code></pre>
-<p>We want to match details about orders, but we are interested only in those orders where price is higher than average price of all the products from <code>product_prices</code> table.</p>
-<p>This is the meta model that we are working with:</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> productPrices =
-      (uuid(<span class="hljs-string">"product_id"</span>) ++ offsetDateTime(<span class="hljs-string">"effective"</span>) ++ bigDecimal(<span class="hljs-string">"price"</span>)).table(<span class="hljs-string">"product_prices"</span>)
-
-<span class="hljs-keyword">val</span> id :*: effective :*: price :*: _ = productPrices.columns
-
-<span class="hljs-keyword">val</span> orderDetails =
-      (uuid(<span class="hljs-string">"order_id"</span>) ++ uuid(<span class="hljs-string">"product_id"</span>) ++ bigDecimal(<span class="hljs-string">"unit_price"</span>)).table(<span class="hljs-string">"order_details"</span>)
-
-<span class="hljs-keyword">val</span> orderDetailsId :*: productId :*: unitPrice :*: _ = orderDetails.columns
-</code></pre>
-<p>We can create query very easily. In fact, just type it like a regular sql query and let your IDE auto completion guide you!</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> query = select(orderDetailsId ++ productId ++ unitPrice)
-        .from(orderDetails)
-        .where(
-          unitPrice &gt; select(<span class="hljs-type">Avg</span>(price)).from(productPrices)
-        )
-</code></pre>
-<p>Then you can either execute the query to selected types or inspect sql query represented as a String.
-You just need a custom data type (Row in our example) to encapsulate results of a selection.</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Row</span>(<span class="hljs-params">orderId: <span class="hljs-type">UUID</span>, productId: <span class="hljs-type">UUID</span>, unitPrice: <span class="hljs-type">BigDecimal</span></span>)</span>
-
-<span class="hljs-keyword">val</span> result: <span class="hljs-type">ZStream</span>[<span class="hljs-type">Has</span>[<span class="hljs-type">SqlDriver</span>],<span class="hljs-type">Exception</span>,<span class="hljs-type">Row</span>] = execute(query.to[<span class="hljs-type">UUID</span>, <span class="hljs-type">UUID</span>, <span class="hljs-type">BigDecimal</span>, <span class="hljs-type">Row</span>](<span class="hljs-type">Row</span>.apply))
-
-<span class="hljs-keyword">val</span> sqlQuery: <span class="hljs-type">String</span> = renderRead(query)
-</code></pre>
-<p>Similarly you can use subqueries inside <code>select</code> clause.</p>
-<h3><a class="anchor" aria-hidden="true" id="correlated-subqueries"></a><a href="#correlated-subqueries" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Correlated subqueries</h3>
-<p>Correlated subqueries are the ones that are executed after the outer query. They can be dependent on the result of the outer query and therefore they are executed for each resulting row of the outer query.</p>
-<p>Lets say we want to build the following query:</p>
-<pre><code class="hljs css language-sql"><span class="hljs-keyword">select</span> first_name, last_name, 
-        ( <span class="hljs-keyword">select</span> <span class="hljs-keyword">count</span>(orders.id) <span class="hljs-keyword">from</span> orders <span class="hljs-keyword">where</span> customers.id = orders.customer_id ) <span class="hljs-keyword">as</span> <span class="hljs-string">"count"</span> 
-<span class="hljs-keyword">from</span> customers
-</code></pre>
-<p>This would return the count of orders for each customer.</p>
-<p>Description of tables:</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> customers = (uuid(<span class="hljs-string">"id"</span>) ++ string(<span class="hljs-string">"first_name"</span>) ++ string(<span class="hljs-string">"last_name"</span>))).table(<span class="hljs-string">"customers"</span>)
-
-<span class="hljs-keyword">val</span> customerId :*: fName :*: lName _ = customers.columns
-
-<span class="hljs-keyword">val</span> orders = (uuid(<span class="hljs-string">"id"</span>) ++ uuid(<span class="hljs-string">"customer_id"</span>) ++ localDate(<span class="hljs-string">"order_date"</span>)).table(<span class="hljs-string">"orders"</span>)
-
-<span class="hljs-keyword">val</span> orderId :*: fkCustomerId :*: orderDate :*: _ = orders.columns
-</code></pre>
-<p>ZIO SQL query:</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> subquery =
-        customers.subselect(<span class="hljs-type">Count</span>(orderId)).from(orders).where(fkCustomerId === customerId)
-
-<span class="hljs-keyword">val</span> query = select(fName ++ lName ++ (subquery as <span class="hljs-string">"Count"</span>)).from(customers)
-</code></pre>
-<p>All of these examples and more can be found and run in zio-sql tests.</p>
-<h3><a class="anchor" aria-hidden="true" id="correlated-subquery-in-from-clause--derived-tables"></a><a href="#correlated-subquery-in-from-clause--derived-tables" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Correlated subquery in from clause &amp; Derived tables</h3>
-<p>Just one last, a little more complex example before we wrap up this section, for which we would use the same <em>customers</em> and <em>orders</em> tables as before.</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> customers = (uuid(<span class="hljs-string">"id"</span>) ++ string(<span class="hljs-string">"first_name"</span>) ++ string(<span class="hljs-string">"last_name"</span>))).table(<span class="hljs-string">"customers"</span>)
-
-<span class="hljs-keyword">val</span> customerId :*: fName :*: lName _ = customers.columns
-
-<span class="hljs-keyword">val</span> orders = (uuid(<span class="hljs-string">"id"</span>) ++ uuid(<span class="hljs-string">"customer_id"</span>) ++ localDate(<span class="hljs-string">"order_date"</span>)).table(<span class="hljs-string">"orders"</span>)
-
-<span class="hljs-keyword">val</span> orderId :*: fkCustomerId :*: orderDate :*: _ = orders.columns
-</code></pre>
-<p>Imagine we want to write a query that selects all customers with the date of their last order. If you approach this problem with JOIN, you end up with one row of a customer with the newest order. In fact, this is a good example of correlated subquery inside <code>from</code> clause, where subquery needs to access <code>customer_id</code> of the outer query. For this type of problems postgres introduced <strong>LATERAL</strong> keyword and MSSQL Server have <strong>CROSS APPLY</strong> and <strong>OUTER APPLY</strong>.</p>
-<pre><code class="hljs css language-sql"><span class="hljs-keyword">select</span> customers.id, customers.first_name, customers.last_name, derived.order_date
-                <span class="hljs-keyword">from</span> customers,
-                <span class="hljs-keyword">lateral</span>  (
-                     <span class="hljs-keyword">select</span> orders.order_date
-                     <span class="hljs-keyword">from</span> orders
-                     <span class="hljs-keyword">where</span> customers.id = orders.customer_id
-                     <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> orders.order_date <span class="hljs-keyword">desc</span> <span class="hljs-keyword">limit</span> <span class="hljs-number">1</span> ) derived <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> derived.order_date <span class="hljs-keyword">desc</span>
-</code></pre>
-<p>Now it’s starting to be a little more complicated. First we need to create a <code>subselect</code> which can access columns from another source table - <code>customers</code> in our case. Then we specify this source as a type parameter to <code>subselect</code>. In order to build the whole query we also need <code>derived.order_date</code> which is coming from <code>derived</code> table, so that we can extract that column. We create <code>derivedTable</code> by calling <code>asTable(tableName: String)</code> method on <code>subselect</code>.</p>
-<pre><code class="hljs css language-scala"> <span class="hljs-keyword">val</span> derivedTable  = subselect[customers.<span class="hljs-type">TableType</span>](orderDate)
-        .from(orders)
-        .limit(<span class="hljs-number">1</span>)
-        .where(customerId === fkCustomerId)
-        .orderBy(<span class="hljs-type">Ordering</span>.<span class="hljs-type">Desc</span>(orderDate))
-        .asTable(<span class="hljs-string">"derived"</span>)
-
-<span class="hljs-keyword">val</span> orderDateDerived :*: _ = derivedTable
-</code></pre>
-<p>Finally, we have all the ingredients we need to describe our query with zio-sql.</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> <span class="hljs-type">PostgresSpecific</span>.<span class="hljs-type">PostgresSpecificTable</span>._
-
-<span class="hljs-keyword">val</span> query =
-        select(customerId ++ fName ++ lName ++ orderDateDerived)
-          .from(customers.lateral(derivedTable))
-          .orderBy(<span class="hljs-type">Ordering</span>.<span class="hljs-type">Desc</span>(orderDateDerived))
+<pre><code class="hljs css language-scala">insertInto(products)
+    (productId ++ name ++ price)
+  .values((<span class="hljs-type">UUID</span>.randomUUID(), <span class="hljs-string">"Zionomicon"</span>, <span class="hljs-number">10.5</span>))
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="updates"></a><a href="#updates" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Updates</h2>
 <p>TODO: details</p>
@@ -363,4 +160,4 @@ You just need a custom data type (Row in our example) to encapsulate results of 
 <p>TODO: details</p>
 <h2><a class="anchor" aria-hidden="true" id="running-queries"></a><a href="#running-queries" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Running queries</h2>
 <p>TODO: details</p>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-next button" href="/zio-sql/docs/overview/deep_dive"><span>Deep dive</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#installation">Installation</a></li><li><a href="#imports-and-modules">Imports and modules</a></li><li><a href="#table-schema">Table schema</a></li><li><a href="#selects">Selects</a></li><li><a href="#inserts">Inserts</a><ul class="toc-headings"><li><a href="#table-description">Table description</a></li><li><a href="#insert-tuples">Insert tuples</a></li><li><a href="#insert-custom-case-class">Insert custom case class</a></li><li><a href="#show-generated-sql-query">Show generated SQL query</a></li><li><a href="#execute-the-query">Execute the query</a></li><li><a href="#more-examples">More examples</a></li><li><a href="#what-is-missing">What is missing</a></li></ul></li><li><a href="#subqueries--correlated-subqueries">Subqueries &amp; Correlated subqueries</a><ul class="toc-headings"><li><a href="#subquery">Subquery</a></li><li><a href="#correlated-subqueries">Correlated subqueries</a></li><li><a href="#correlated-subquery-in-from-clause--derived-tables">Correlated subquery in from clause &amp; Derived tables</a></li></ul></li><li><a href="#updates">Updates</a></li><li><a href="#deletes">Deletes</a></li><li><a href="#transactions">Transactions</a></li><li><a href="#printing-queries">Printing queries</a></li><li><a href="#running-queries">Running queries</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/zio-sql/" class="nav-home"><img src="/zio-sql/img/sidebar_brand2x.png" alt="ZIO SQL"/></a><div><h5>GitHub</h5><a class="github-button" href="https://github.com/zio/zio-sql" data-icon="octicon-star" data-count-href="/zio/zio-sql/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a></div><div><h5>Chat with us on Discord</h5><a href="https://discord.gg/2ccFBr4"><img src="/zio-sql//img/discord.png" width="120" alt="discord"/></a></div><div><h5>Additional resources</h5><a href="/zio-sql/api/index.html">Scaladoc of zio-sql</a></div></section><section class="copyright">Copyright © 2022 ZIO Maintainers</section></footer></div></body></html>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-next button" href="/zio-sql/docs/overview/deep_dive"><span>Deep dive</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#installation">Installation</a></li><li><a href="#imports-and-modules">Imports and modules</a></li><li><a href="#table-schema">Table schema</a></li><li><a href="#table-schema-decomposition">Table schema decomposition</a></li><li><a href="#selects">Selects</a></li><li><a href="#inserts">Inserts</a></li><li><a href="#updates">Updates</a></li><li><a href="#deletes">Deletes</a></li><li><a href="#transactions">Transactions</a></li><li><a href="#printing-queries">Printing queries</a></li><li><a href="#running-queries">Running queries</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/zio-sql/" class="nav-home"><img src="/zio-sql/img/sidebar_brand2x.png" alt="ZIO SQL"/></a><div><h5>GitHub</h5><a class="github-button" href="https://github.com/zio/zio-sql" data-icon="octicon-star" data-count-href="/zio/zio-sql/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a></div><div><h5>Chat with us on Discord</h5><a href="https://discord.gg/2ccFBr4"><img src="/zio-sql//img/discord.png" width="120" alt="discord"/></a></div><div><h5>Additional resources</h5><a href="/zio-sql/api/index.html">Scaladoc of zio-sql</a></div></section><section class="copyright">Copyright © 2022 ZIO Maintainers</section></footer></div></body></html>
